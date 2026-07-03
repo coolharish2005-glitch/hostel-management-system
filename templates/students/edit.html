@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Student - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="page-title">Edit Student</h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="form-card">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ student.name }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ student.email }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Phone *</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" value="{{ student.phone }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="roll_number" class="form-label">Roll Number (Read-only)</label>
+                            <input type="text" class="form-control" id="roll_number" value="{{ student.roll_number }}" disabled>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="department" class="form-label">Department</label>
+                            <input type="text" class="form-control" id="department" name="department" value="{{ student.department or '' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="year" class="form-label">Year</label>
+                            <select class="form-control" id="year" name="year">
+                                <option value="">Select Year</option>
+                                <option value="1" {% if student.year == 1 %}selected{% endif %}>1st Year</option>
+                                <option value="2" {% if student.year == 2 %}selected{% endif %}>2nd Year</option>
+                                <option value="3" {% if student.year == 3 %}selected{% endif %}>3rd Year</option>
+                                <option value="4" {% if student.year == 4 %}selected{% endif %}>4th Year</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="hostel_id" class="form-label">Hostel</label>
+                            <select class="form-control" id="hostel_id" name="hostel_id">
+                                <option value="">Select Hostel</option>
+                                {% for hostel in hostels %}
+                                <option value="{{ hostel.id }}" {% if student.hostel_id == hostel.id %}selected{% endif %}>{{ hostel.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-control" id="status" name="status">
+                                <option value="Active" {% if student.status == 'Active' %}selected{% endif %}>Active</option>
+                                <option value="Inactive" {% if student.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                                <option value="Graduated" {% if student.status == 'Graduated' %}selected{% endif %}>Graduated</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="photo" class="form-label">Photo</label>
+                            <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+                        </div>
+                        <div class="col-md-6">
+                            {% if student.photo_url %}
+                            <img src="{{ student.photo_url }}" alt="{{ student.name }}" class="img-thumbnail" style="max-height: 150px;">
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="guardian_name" class="form-label">Guardian Name</label>
+                            <input type="text" class="form-control" id="guardian_name" name="guardian_name" value="{{ student.guardian_name or '' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="guardian_phone" class="form-label">Guardian Phone</label>
+                            <input type="tel" class="form-control" id="guardian_phone" name="guardian_phone" value="{{ student.guardian_phone or '' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address</label>
+                        <textarea class="form-control" id="address" name="address" rows="3">{{ student.address or '' }}</textarea>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update Student
+                        </button>
+                        <a href="{{ url_for('list_students') }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

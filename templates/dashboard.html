@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Welcome back! Here's your hostel management overview.</p>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Total Students</h3>
+                    <p class="stat-value">{{ total_students }}</p>
+                    <a href="{{ url_for('list_students') }}" class="stat-link">View Students →</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon bg-success">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Total Hostels</h3>
+                    <p class="stat-value">{{ total_hostels }}</p>
+                    <a href="{{ url_for('list_hostels') }}" class="stat-link">View Hostels →</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon bg-info">
+                    <i class="fas fa-door-open"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Total Rooms</h3>
+                    <p class="stat-value">{{ total_rooms }}</p>
+                    <a href="{{ url_for('list_rooms') }}" class="stat-link">View Rooms →</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon bg-warning">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Applications</h3>
+                    <p class="stat-value">{{ total_applications }}</p>
+                    <span class="badge bg-danger">{{ pending_apps }} Pending</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Section -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="chart-card">
+                <h4>Hostel Occupancy</h4>
+                <canvas id="occupancyChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-4">
+            <div class="chart-card">
+                <h4>Application Status</h4>
+                <canvas id="applicationChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions & Recent Applications -->
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="quick-actions-card">
+                <h4>Quick Actions</h4>
+                <div class="actions-list">
+                    {% if current_user.role == 'admin' %}
+                    <a href="{{ url_for('add_student') }}" class="action-btn">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Student</span>
+                    </a>
+                    <a href="{{ url_for('add_hostel') }}" class="action-btn">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Hostel</span>
+                    </a>
+                    <a href="{{ url_for('add_room') }}" class="action-btn">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Room</span>
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('list_students') }}" class="action-btn">
+                        <i class="fas fa-list"></i>
+                        <span>View All Students</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8 mb-4">
+            <div class="recent-applications-card">
+                <h4>Recent Applications</h4>
+                {% if recent_applications %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Hostel</th>
+                                <th>Room Type</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in recent_applications %}
+                            <tr>
+                                <td><strong>{{ app.student.name }}</strong></td>
+                                <td>{{ app.hostel.name }}</td>
+                                <td><span class="badge bg-secondary">{{ app.room_preference }}</span></td>
+                                <td>
+                                    {% if app.status == 'Pending' %}
+                                        <span class="badge bg-warning">{{ app.status }}</span>
+                                    {% elif app.status == 'Approved' %}
+                                        <span class="badge bg-success">{{ app.status }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ app.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ app.application_date.strftime('%d %b %Y') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No applications yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Occupancy Chart
+    const occupancyCtx = document.getElementById('occupancyChart').getContext('2d');
+    new Chart(occupancyCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ occupancy_data['labels'] | tojson }},
+            datasets: [
+                {
+                    label: 'Current Occupancy',
+                    data: {{ occupancy_data['data'] | tojson }},
+                    backgroundColor: '#667eea',
+                    borderColor: '#667eea',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Total Capacity',
+                    data: {{ occupancy_data['capacity'] | tojson }},
+                    backgroundColor: '#e0e0e0',
+                    borderColor: '#999',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Application Status Chart
+    const appCtx = document.getElementById('applicationChart').getContext('2d');
+    new Chart(appCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ app_status_data['labels'] | tojson }},
+            datasets: [{
+                data: {{ app_status_data['data'] | tojson }},
+                backgroundColor: ['#ffc107', '#28a745', '#dc3545'],
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
