@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <div class="error-container">
+        <h1 class="error-code">500</h1>
+        <h2>Internal Server Error</h2>
+        <p class="lead">Something went wrong on our end. Please try again later.</p>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Go Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}
