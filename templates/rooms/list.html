@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Rooms - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="page-title">Rooms</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('add_room') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Room
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Hostel Filter -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <form method="GET" class="d-flex gap-2">
+                <select class="form-control" name="hostel_id" onchange="this.form.submit();">
+                    <option value="">All Hostels</option>
+                    {% for hostel in hostels %}
+                    <option value="{{ hostel.id }}" {% if selected_hostel == hostel.id %}selected{% endif %}>{{ hostel.name }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Rooms Table -->
+    <div class="table-card">
+        {% if rooms.items %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Hostel</th>
+                        <th>Floor</th>
+                        <th>Room Number</th>
+                        <th>Type</th>
+                        <th>Capacity</th>
+                        <th>Current</th>
+                        <th>Status</th>
+                        <th>Rent</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for room in rooms.items %}
+                    <tr>
+                        <td><strong>{{ room.hostel.name }}</strong></td>
+                        <td>{{ room.floor_number }}</td>
+                        <td>{{ room.room_number }}</td>
+                        <td><span class="badge bg-secondary">{{ room.room_type }}</span></td>
+                        <td>{{ room.capacity }}</td>
+                        <td>{{ room.current_occupancy }}/{{ room.capacity }}</td>
+                        <td>
+                            {% if room.status == 'Available' %}
+                            <span class="badge bg-success">{{ room.status }}</span>
+                            {% elif room.status == 'Occupied' %}
+                            <span class="badge bg-warning">{{ room.status }}</span>
+                            {% else %}
+                            <span class="badge bg-danger">{{ room.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>${{ room.rent }}</td>
+                        <td>
+                            {% if current_user.role == 'admin' %}
+                            <a href="{{ url_for('edit_room', id=room.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('delete_room', id=room.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if rooms.pages > 1 %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if rooms.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('list_rooms', page=rooms.prev_num, hostel_id=selected_hostel) }}">Previous</a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in rooms.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num == rooms.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('list_rooms', page=page_num, hostel_id=selected_hostel) }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+                
+                {% if rooms.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('list_rooms', page=rooms.next_num, hostel_id=selected_hostel) }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        {% else %}
+        <p class="text-muted text-center p-4">No rooms found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

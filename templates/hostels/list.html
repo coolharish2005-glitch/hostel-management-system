@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Hostels - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="page-title">Hostels</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('add_hostel') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Hostel
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Hostels Cards Grid -->
+    <div class="row">
+        {% if hostels.items %}
+            {% for hostel in hostels.items %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="hostel-card">
+                    <div class="hostel-header">
+                        <h5>{{ hostel.name }}</h5>
+                        <span class="badge bg-info">{{ hostel.location }}</span>
+                    </div>
+                    
+                    <div class="hostel-details">
+                        <p><strong>Address:</strong> {{ hostel.address or 'N/A' }}</p>
+                        <p><strong>Phone:</strong> {{ hostel.phone or 'N/A' }}</p>
+                        <p><strong>Manager:</strong> {{ hostel.manager.full_name if hostel.manager else 'Not Assigned' }}</p>
+                    </div>
+                    
+                    <div class="occupancy-bar">
+                        <div class="occupancy-label">
+                            <span>Occupancy: {{ hostel.current_occupancy }}/{{ hostel.total_capacity }}</span>
+                            <span class="occupancy-percent">{{ hostel.get_occupancy_percentage() }}%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: {{ hostel.get_occupancy_percentage() }}%" aria-valuenow="{{ hostel.get_occupancy_percentage() }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="hostel-actions">
+                        {% if current_user.role == 'admin' %}
+                        <a href="{{ url_for('edit_hostel', id=hostel.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <form method="POST" action="{{ url_for('delete_hostel', id=hostel.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="col-md-12">
+            <p class="text-muted text-center p-4">No hostels found.</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if hostels.pages > 1 %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if hostels.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('list_hostels', page=hostels.prev_num) }}">Previous</a>
+            </li>
+            {% endif %}
+            
+            {% for page_num in hostels.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num == hostels.page %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('list_hostels', page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+            
+            {% if hostels.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('list_hostels', page=hostels.next_num) }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
